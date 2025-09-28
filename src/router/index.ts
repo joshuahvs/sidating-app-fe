@@ -1,6 +1,10 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import ProfileView from '../views/ProfileView.vue'
+import PostView from '../views/PostView.vue'
+import CreatePostView from '../views/CreatePostView.vue'
+import DetailPostView from '../views/DetailPostView.vue'
+import EditPostView from '../views/EditPostView.vue'
 import DetailProfileView from '../views/DetailProfileView.vue'
 import CreateProfileView from '../views/CreateProfileView.vue'
 import EditProfileView from '../views/EditProfileView.vue'
@@ -12,6 +16,27 @@ const router = createRouter({
       path: '/',
       name: 'home',
       component: HomeView,
+    },
+    // Post routes
+    {
+      path: '/posts',
+      name: 'posts',
+      component: PostView,
+    },
+    {
+      path: '/posts/add',
+      name: 'create-post',
+      component: CreatePostView,
+    },
+    {
+      path: '/posts/:id',
+      name: 'detail-post',
+      component: DetailPostView,
+    },
+    {
+      path: '/posts/:id/edit',
+      name: 'edit-post',
+      component: EditPostView,
     },
     {
       path: '/profiles',
