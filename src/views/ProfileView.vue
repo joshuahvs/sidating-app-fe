@@ -1,86 +1,89 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { DataTable } from 'simple-datatables'
+import type { ColumnDef } from '@tanstack/vue-table'
+import { h, resolveComponent } from 'vue'
 import VButton from '@/components/common/VButton.vue'
 import VDeleteProfileButton from '@/components/profile/VDeleteProfileButton.vue'
-import { profileService } from '@/services/profile.service'
+import VDataTable from '@/components/common/VDataTable.vue'
 
-const profiles = ref(profileService.getAllProfiles())
-let dt: DataTable | null = null
+import { onMounted } from 'vue'
+import type { UserProfile } from '@/interfaces/profile.interface'
+import { useUserProfileStore } from '@/stores/profile/profile.store'
 
-const buildDataTable = () => {
-  const tableElement = document.getElementById('profiles-table') as HTMLTableElement
-  if (tableElement && typeof DataTable !== 'undefined') {
-    if (dt) {
-      dt.destroy()
-      dt = null
-    }
-    dt = new DataTable(tableElement, {
-      searchable: false,
-    })
-  }
-}
 
-const handleDeleted = async (id: string) => {
-  profiles.value = profiles.value.filter(p => p.id !== id)
-
-  if (dt) {
-    const row = document.querySelector(`#profiles-table tr[data-id=\"${id}\"]`)
-    /* c8 ignore start - DOM row removal visually verified in manual QA; complex to simulate index reliably */
-    if (row && row.parentElement) {
-      const rowIndex = Array.from(row.parentElement.children).indexOf(row)
-      if (rowIndex > -1) {
-        dt.rows.remove(rowIndex)
-      }
-    }
-    /* c8 ignore end */
-  }
-}
-
-onMounted(() => {
-  buildDataTable()
+const userProfileStore = useUserProfileStore()
+const columns: ColumnDef<UserProfile>[] = [
+  {
+    accessorKey: 'name',
+    header: 'Nama',
+    cell: (info) => info.getValue(),
+  },
+  {
+    accessorKey: 'nickname',
+    header: 'Nickname',
+    cell: (info) => info.getValue(),
+  },
+  {
+    accessorKey: 'email',
+    header: 'Email',
+    cell: (info) => info.getValue(),
+  },
+  {
+    id: 'actions',
+    header: 'Aksi',
+    cell: (info) => {
+      const profile = info.row.original
+      const RouterLink = resolveComponent('RouterLink')
+      return h('div', { class: 'flex gap-2 w-full' }, [
+        h(
+          RouterLink,
+          { to: `/profiles/${profile.id}`, class: 'flex-1' },
+          {
+            default: () =>
+              h(
+                VButton,
+                { class: 'w-full bg-blue-500 hover:bg-blue-600 text-white' },
+                { default: () => 'Lihat' },
+              ),
+          },
+        ),
+        h(
+          RouterLink,
+          { to: `/profiles/${profile.id}/edit`, class: 'flex-1' },
+          {
+            default: () =>
+              h(
+                VButton,
+                { class: 'w-full bg-yellow-400 hover:bg-yellow-500 text-white' },
+                { default: () => 'Edit' },
+              ),
+          },
+        ),
+        h('div', { class: 'flex-1' }, [
+          h(VDeleteProfileButton, {
+            class: 'w-full',
+            profileId: profile.id,
+          }),
+        ]),
+      ])
+    },
+  },
+]
+onMounted(async () => {
+  await userProfileStore.fetchProfiles()
 })
 </script>
 
 <template>
-  <main class="flex items-center justify-center w-full h-full">
-    <div class="px-12 py-20 w-full">
+  <main class="flex items-center justify-center w-full min-h-screen bg-gray-50">
+    <div class="px-4 md:px-12 py-10 md:py-20 w-full">
       <div class="flex flex-col gap-6">
-        <RouterLink to="/profiles/add">
-          <VButton class="add-button">Buat Profil Baru</VButton>
-        </RouterLink>
-        <table id="profiles-table">
-          <thead>
-            <tr>
-              <th><span class="flex items-center">Nama</span></th>
-              <th><span class="flex items-center">Nickname</span></th>
-              <th><span class="flex items-center">Email</span></th>
-              <th><span class="flex items-center">Aksi</span></th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="p in profiles" :key="p.id" :data-id="p.id">
-              <td class="font-medium text-gray-900 whitespace-nowrap">
-                {{ p.name }}
-              </td>
-              <td>{{ p.nickname }}</td>
-              <td>{{ p.email }}</td>
-              <td class="flex gap-1">
-                <RouterLink :to="`/profiles/${p.id}`" class="w-full">
-                  <VButton class="detail-button">Lihat</VButton>
-                </RouterLink>
-                <RouterLink :to="`/profiles/${p.id}/edit`" class="w-full">
-                  <VButton class="edit-button">Edit</VButton>
-                </RouterLink>
-                <VDeleteProfileButton
-                  :profileId="p.id"
-                  class="w-full"
-                  @deleted="handleDeleted"
-                />
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        <div class="flex justify-start">
+          <RouterLink to="/profiles/add">
+            <VButton class="add-button">Buat Profil Baru</VButton>
+          </RouterLink>
+        </div>
+
+        <VDataTable :data="userProfileStore.profiles" :columns="columns" :page-size="10" />
       </div>
     </div>
   </main>
@@ -88,7 +91,7 @@ onMounted(() => {
 
 <style scoped>
 @reference "@/assets/main.css";
-.add-button { @apply bg-pink-600 hover:bg-pink-800 text-white }
-.detail-button { @apply bg-blue-600 hover:bg-blue-800 text-white }
-.edit-button { @apply bg-yellow-400 hover:bg-yellow-600 text-white }
+.add-button {
+  @apply bg-pink-600 hover:bg-pink-700 text-white font-medium px-6 py-2 rounded-lg transition-colors;
+}
 </style>
