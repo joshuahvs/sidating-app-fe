@@ -21,7 +21,7 @@ const handleDeleted = () => emit('deleted', props.post.id);
       <img :src="post.imageUrl" :alt="post.caption" class="w-full h-full object-cover" />
     </RouterLink>
     <div class="p-3 flex flex-col gap-2">
-      <p class="font-semibold text-sm">@{{ post.userId }}</p>
+  <p class="font-semibold text-sm">@{{ post.userName || (post.userId?.slice(0,8) + '…') }}</p>
       <p class="text-xs line-clamp-2">{{ post.caption }}</p>
       <p class="text-[10px] text-gray-500">{{ format(new Date(post.createdAt), 'dd MMM yyyy HH:mm') }}</p>
       <div class="flex items-center justify-between pt-1">

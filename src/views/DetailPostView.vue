@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { postService } from '@/services/post.service';
+import { usePostStore } from '@/stores/post/post.store';
 import VButton from '@/components/common/VButton.vue';
 import VDeletePostButton from '@/components/post/VDeletePostButton.vue';
 import VLikeButton from '@/components/post/VLikeButton.vue';
@@ -15,10 +15,12 @@ const { id: postId } = route.params as { id: string };
 const currentUserId = 'user1';
 
 const post = ref<Post | undefined>(undefined);
+const postStore = usePostStore();
 
-onMounted(() => {
-  post.value = postService.getPost(postId);
-  if (!post.value) router.replace('/posts');
+onMounted(async () => {
+  const p = await postStore.getPostById(postId);
+  if (!p) router.replace('/posts');
+  else post.value = p;
 });
 </script>
 
@@ -39,7 +41,7 @@ onMounted(() => {
         </div>
         <div class="flex justify-between items-center">
           <div>
-            <p class="font-semibold">@{{ post.userId }}</p>
+            <p class="font-semibold">@{{ post.userName || (post.userId?.slice(0,8) + '…') }}</p>
             <p class="text-sm text-gray-500">{{ format(new Date(post.createdAt), 'dd MMM yyyy HH:mm') }}</p>
           </div>
           <VLikeButton :post-id="post.id" :current-user-id="currentUserId" />
