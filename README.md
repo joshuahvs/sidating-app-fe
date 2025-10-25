@@ -11,6 +11,37 @@ Konflik muncul saat `git merge tutorial6-for-merge` ke `feat/tutorial-6` karena 
 
 Referensi: https://git-scm.com/docs/git-merge
 
-## 3. 
+## 3. Jelaskan perbedaan dari "rebase --continue", "rebase --skip", dan "rebase --abort"!
+- rebase --continue: Dilanjutkan setelah konflik pada commit saat ini diselesaikan dan perubahan sudah di-stage (git add). Git menerapkan commit berikutnya dalam rangkaian rebase.
+- rebase --skip: Melewati commit yang sedang bermasalah (tidak diterapkan ke hasil rebase) dan lanjut ke commit berikutnya.
+- rebase --abort: Membatalkan proses rebase dan mengembalikan working tree serta HEAD ke keadaan sebelum rebase dimulai.
+
+referensi: https://git-scm.com/docs/git-rebase
+
+## 4. Apa perbedaan Git Merge dengan Git Rebase? Buatlah/carilah ilustrasi yang dapat menggambarkan perbedaanya! Anda bisa menggunakan commit history (git log-oneline) Anda setelah melakukan rebase.
+- Merge: Menggabungkan dua riwayat dan membuat “merge commit” baru (dua parent). Riwayat tetap bercabang, tidak mengubah kode SHA commit lama. 
+- Rebase: Memindahkan/menulis ulang commit di atas base baru sehingga riwayat jadi linear. Mengubah SHA commit yang di‑rebase. 
+
+Ilustrasi riwayat:
+Rebase:
+```
+* e2f3c1e (HEAD -> feat/tutorial-6) tutorial6: add text at tutorial6-for-merge
+* 64a974e add conflict text at feat/tutorial-6
+* c9d8e7f (origin/main, main) chore: update docs
+* b8a7c6d feat(tutorial-4): Menyelesaikan latihan fitur post
+* a1b2c3d init: initialize project
+```
+Merge:
+```
+*   f0e1d2c (HEAD -> feat/tutorial-6) Merge branch 'tutorial6-for-merge' into feat/tutorial-6
+|\  
+| * 46f08c4 (tutorial6-for-merge) tutorial6: add text at tutorial6-for-merge
+* | 64a974e add conflict text at feat/tutorial-6
+|/  
+* c9d8e7f (origin/main, main) chore: update docs
+* b8a7c6d feat(tutorial-4): Menyelesaikan latihan fitur post
+* a1b2c3d init: initialize project
+```
+referensi: https://www.atlassian.com/git/tutorials/merging-vs-rebasing
 
 ![Screenshot](docs/images/screenshot1.png)
