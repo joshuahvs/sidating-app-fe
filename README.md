@@ -51,4 +51,11 @@ referensi: https://www.atlassian.com/git/tutorials/merging-vs-rebasing
 
 referensi: https://git-scm.com/docs/git-stash
 
+## 6. Sebutkan dan jelaskan tiga tipe dari Git Reset
+`git reset --soft` hanya memindahkan HEAD ke commit target dan membiarkan index serta working directory tetap seperti kondisi sekarang; ini berguna ketika ingin menggabungkan beberapa commit terakhir menjadi satu commit baru. `git reset --mixed` (default) memindahkan HEAD sekaligus menyelaraskan index ke commit target namun tidak mengubah working directory, sehingga perubahan file tetap ada tetapi menjadi un-staged; mode ini cocok untuk “unstage” perubahan atau memecah commit. `git reset --hard` memindahkan HEAD, mengubah index, dan menyamakan working directory dengan commit target; semua perubahan lokal yang belum disimpan akan hilang, sehingga harus digunakan dengan sangat hati-hati. 
+
+referensi: https://git-scm.com/docs/git-reset
+
+
+
 ![Screenshot](docs/images/screenshot1.png)
