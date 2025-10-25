@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
-import { postService } from '@/services/post.service';
+import { ref, computed, onMounted } from 'vue';
+import { usePostStore } from '@/stores/post/post.store';
+import { useUserProfileStore } from '@/stores/profile/profile.store';
 import VPostCard from '@/components/post/VPostCard.vue';
 import VPostFilterDropdown from '@/components/post/VPostFilterDropdown.vue';
 import VButton from '@/components/common/VButton.vue';
+const currentUserId = ref('');
 
-
-const currentUserId = 'user1';
-
-const posts = ref(postService.getAllPosts());
+const postStore = usePostStore();
+const posts = computed(() => postStore.posts);
 
 const allUsers = computed(() => Array.from(new Set(posts.value.map(p => p.userId))));
 
@@ -29,9 +29,19 @@ const handleFilterChange = (payload: { user: string; sort: string }) => {
   filter.value = payload;
 };
 
-const handleDeleted = (id: string) => {
-  posts.value = posts.value.filter(p => p.id !== id);
+const handleDeleted = async (_id: string) => {
+  // Store already removed it; refetch to be safe
+  await postStore.fetchPosts();
 };
+
+onMounted(async () => {
+  await postStore.fetchPosts();
+  const profileStore = useUserProfileStore();
+  const profiles = await profileStore.fetchProfiles();
+  if (profiles && profiles.length > 0) {
+    currentUserId.value = profiles[0].id;
+  }
+});
 </script>
 
 <template>
@@ -48,7 +58,7 @@ const handleDeleted = (id: string) => {
       <div v-if="filteredPosts.length === 0" class="text-center py-20 text-gray-500">Belum ada post</div>
 
       <div v-else class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        <VPostCard v-for="p in filteredPosts" :key="p.id" :post="p" :current-user-id="currentUserId" @deleted="handleDeleted" />
+  <VPostCard v-for="p in filteredPosts" :key="p.id" :post="p" :current-user-id="currentUserId" @deleted="handleDeleted" />
       </div>
     </div>
   </main>

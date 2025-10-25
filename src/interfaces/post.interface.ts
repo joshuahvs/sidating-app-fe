@@ -1,6 +1,7 @@
 export interface Post {
   id: string;
-  userId: string;
+  userId: string; // UUID of user profile
+  userName?: string; // display name of user profile
   imageUrl: string;
   caption: string;
   createdAt: Date;

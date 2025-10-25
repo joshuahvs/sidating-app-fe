@@ -108,7 +108,7 @@ describe('VNavbar', () => {
     expect(nav.classes()).toContain('gap-4')
 
     const navLinks = nav.findAllComponents({ name: 'RouterLink' })
-    expect(navLinks).toHaveLength(1) // Only Profile link is in nav
+    expect(navLinks).toHaveLength(2) // Profile and Posts links are in nav
   })
 
   it('should call getLinkClass function correctly', async () => {
@@ -139,13 +139,14 @@ describe('VNavbar', () => {
       global: { plugins: [router] }
     })
 
-    const routerLinks = wrapper.findAllComponents({ name: 'RouterLink' })
-    expect(routerLinks).toHaveLength(2) // Brand link + Profile link
+  const routerLinks = wrapper.findAllComponents({ name: 'RouterLink' })
+  expect(routerLinks).toHaveLength(3) // Brand link + Profile link + Posts link
 
     // Check all links are present
     const linkTargets = routerLinks.map(link => link.props('to'))
     expect(linkTargets).toContain('/')
     expect(linkTargets).toContain('/profiles')
+    expect(linkTargets).toContain('/posts')
   })
 
   it('should be accessible and semantic', async () => {

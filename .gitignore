@@ -550,3 +550,7 @@ gradle-app.setting
 *.hprof
 
 # End of https://www.toptal.com/developers/gitignore/api/windows,macos,linux,homebrew,gradle,java,node,vue,vuejs,visualstudiocode,intellij+all,eclipse,sublimetext,nanoc,vim,notepadpp,dbeaver,venv,dotenv
+
+.env
+.env.*
+!.env.example

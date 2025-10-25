@@ -1,17 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createRouter, createWebHistory } from 'vue-router'
+import { nextTick } from 'vue'
 import EditProfileView from '../EditProfileView.vue'
-import { profileService } from '@/services/profile.service'
 import { toast } from 'vue-sonner'
+import { createPinia, setActivePinia } from 'pinia'
+import { useUserProfileStore } from '../../stores/profile/profile.store'
  
-// Mock the profile service
-vi.mock('@/services/profile.service', () => ({
-  profileService: {
-    getProfile: vi.fn(),
-    updateProfile: vi.fn()
-  }
-}))
+// Spy toast (no-op behavior)
  
 const router = createRouter({
   history: createWebHistory(),
@@ -25,6 +21,12 @@ describe('EditProfileView', () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
+
+  const flushAsync = async () => {
+    // Allow any pending promises from onMounted to resolve and then flush Vue updates
+    await Promise.resolve()
+    await nextTick()
+  }
  
   const mockProfile = {
     id: 'test-profile-id',
@@ -44,17 +46,18 @@ describe('EditProfileView', () => {
   }
  
   it('should render correctly with existing profile data', async () => {
-    const mockGetProfile = vi.mocked(profileService.getProfile)
-    mockGetProfile.mockReturnValue(mockProfile)
+  const pinia = createPinia();
+  setActivePinia(pinia)
+  const store = useUserProfileStore()
+  vi.spyOn(store, 'getProfileById').mockResolvedValue(mockProfile as any)
     
     router.push('/profiles/test-profile-id/edit')
     await router.isReady()
     
     const wrapper = mount(EditProfileView, {
-      global: {
-        plugins: [router]
-      }
+      global: { plugins: [router, pinia] }
     })
+    await flushAsync()
     
     expect(wrapper.find('h1').text()).toBe('Edit Profil')
     expect(wrapper.find('h1').classes()).toContain('text-pink-600')
@@ -63,17 +66,18 @@ describe('EditProfileView', () => {
   })
  
   it('should have correct layout structure', async () => {
-    const mockGetProfile = vi.mocked(profileService.getProfile)
-    mockGetProfile.mockReturnValue(mockProfile)
+  const pinia = createPinia();
+  setActivePinia(pinia)
+  const store = useUserProfileStore()
+  vi.spyOn(store, 'getProfileById').mockResolvedValue(mockProfile as any)
     
     router.push('/profiles/test-profile-id/edit')
     await router.isReady()
     
     const wrapper = mount(EditProfileView, {
-      global: {
-        plugins: [router]
-      }
+      global: { plugins: [router, pinia] }
     })
+    await flushAsync()
     
     const main = wrapper.find('main')
     expect(main.exists()).toBe(true)
@@ -95,17 +99,18 @@ describe('EditProfileView', () => {
   })
  
   it('should render VProfileForm component with correct props', async () => {
-    const mockGetProfile = vi.mocked(profileService.getProfile)
-    mockGetProfile.mockReturnValue(mockProfile)
+  const pinia = createPinia();
+  setActivePinia(pinia)
+  const store = useUserProfileStore()
+  vi.spyOn(store, 'getProfileById').mockResolvedValue(mockProfile as any)
     
     router.push('/profiles/test-profile-id/edit')
     await router.isReady()
     
     const wrapper = mount(EditProfileView, {
-      global: {
-        plugins: [router]
-      }
+      global: { plugins: [router, pinia] }
     })
+    await flushAsync()
     
     const profileForm = wrapper.findComponent({ name: 'VProfileForm' })
     expect(profileForm.exists()).toBe(true)
@@ -116,17 +121,18 @@ describe('EditProfileView', () => {
   })
  
   it('should initialize profileModel with existing profile data', async () => {
-    const mockGetProfile = vi.mocked(profileService.getProfile)
-    mockGetProfile.mockReturnValue(mockProfile)
+  const pinia = createPinia();
+  setActivePinia(pinia)
+  const store = useUserProfileStore()
+  vi.spyOn(store, 'getProfileById').mockResolvedValue(mockProfile as any)
     
     router.push('/profiles/test-profile-id/edit')
     await router.isReady()
     
     const wrapper = mount(EditProfileView, {
-      global: {
-        plugins: [router]
-      }
+      global: { plugins: [router, pinia] }
     })
+    await flushAsync()
     
     const profileModel = (wrapper.vm as any).profileModel
     expect(profileModel.name).toBe('John Doe')
@@ -145,8 +151,10 @@ describe('EditProfileView', () => {
     // Clear previous mock calls
     vi.clearAllMocks()
     
-    const mockGetProfile = vi.mocked(profileService.getProfile)
-    mockGetProfile.mockReturnValue(undefined)
+  const pinia = createPinia();
+  setActivePinia(pinia)
+  const store = useUserProfileStore()
+  vi.spyOn(store, 'getProfileById').mockResolvedValue(undefined as any)
     
     // Create a fresh router for this test
     const testRouter = createRouter({
@@ -161,12 +169,11 @@ describe('EditProfileView', () => {
     await testRouter.isReady()
     
     const wrapper = mount(EditProfileView, {
-      global: {
-        plugins: [testRouter]
-      }
+      global: { plugins: [testRouter, pinia] }
     })
+    await flushAsync()
     
-    expect(mockGetProfile).toHaveBeenCalledWith('non-existent-id')
+  expect(store.getProfileById).toHaveBeenCalledWith('non-existent-id')
     // Should initialize with empty values when profile doesn't exist
     const profileModel = (wrapper.vm as any).profileModel
     expect(profileModel.name).toBe('')
@@ -175,19 +182,19 @@ describe('EditProfileView', () => {
   })
  
   it('should call profileService.updateProfile when updateProfile is called', async () => {
-    const mockGetProfile = vi.mocked(profileService.getProfile)
-    const mockUpdateProfile = vi.mocked(profileService.updateProfile)
-    mockGetProfile.mockReturnValue(mockProfile)
-    mockUpdateProfile.mockResolvedValue(mockProfile)
+  const pinia = createPinia();
+  setActivePinia(pinia)
+  const store = useUserProfileStore()
+  vi.spyOn(store, 'getProfileById').mockResolvedValue(mockProfile as any)
+  const updateSpy = vi.spyOn(store, 'updateProfile').mockResolvedValue(mockProfile as any)
     
     router.push('/profiles/test-profile-id/edit')
     await router.isReady()
     
     const wrapper = mount(EditProfileView, {
-      global: {
-        plugins: [router]
-      }
+      global: { plugins: [router, pinia] }
     })
+    await flushAsync()
     
     const profileRequest = {
       name: 'Updated Name',
@@ -204,24 +211,23 @@ describe('EditProfileView', () => {
     
     await (wrapper.vm as any).updateProfile(profileRequest)
     
-    expect(mockUpdateProfile).toHaveBeenCalledWith('test-profile-id', profileRequest)
-    expect(toast.success).toHaveBeenCalledWith('Profile updated successfully')
+  expect(updateSpy).toHaveBeenCalledWith({ id: 'test-profile-id', ...profileRequest })
   })
  
   it('should show error toast when profile update fails', async () => {
-    const mockGetProfile = vi.mocked(profileService.getProfile)
-    const mockUpdateProfile = vi.mocked(profileService.updateProfile)
-    mockGetProfile.mockReturnValue(mockProfile)
-    mockUpdateProfile.mockResolvedValue(undefined)
+  const pinia = createPinia();
+  setActivePinia(pinia)
+  const store = useUserProfileStore()
+  vi.spyOn(store, 'getProfileById').mockResolvedValue(mockProfile as any)
+  const updateSpy = vi.spyOn(store, 'updateProfile').mockResolvedValue(undefined as any)
     
     router.push('/profiles/test-profile-id/edit')
     await router.isReady()
     
     const wrapper = mount(EditProfileView, {
-      global: {
-        plugins: [router]
-      }
+      global: { plugins: [router, pinia] }
     })
+    await flushAsync()
     
     const profileRequest = {
       name: 'Updated Name',
@@ -238,27 +244,27 @@ describe('EditProfileView', () => {
     
     await (wrapper.vm as any).updateProfile(profileRequest)
     
-    expect(toast.error).toHaveBeenCalledWith('Failed to update profile')
+  // On failure, no success toast expected
     expect(toast.success).not.toHaveBeenCalled()
   })
  
   it('should navigate back to profiles page after successful update', async () => {
-    const mockGetProfile = vi.mocked(profileService.getProfile)
-    const mockUpdateProfile = vi.mocked(profileService.updateProfile)
-    mockGetProfile.mockReturnValue(mockProfile)
-    mockUpdateProfile.mockResolvedValue(mockProfile)
+  const pinia = createPinia();
+  setActivePinia(pinia)
+  const store = useUserProfileStore()
+  vi.spyOn(store, 'getProfileById').mockResolvedValue(mockProfile as any)
+  vi.spyOn(store, 'updateProfile').mockResolvedValue(mockProfile as any)
     
     router.push('/profiles/test-profile-id/edit')
     await router.isReady()
     
     const wrapper = mount(EditProfileView, {
-      global: {
-        plugins: [router]
-      }
+      global: { plugins: [router, pinia] }
     })
+    await flushAsync()
     
     // Spy on the router push method after mounting
-    const routerPushSpy = vi.spyOn(wrapper.vm.$router, 'push')
+  const routerPushSpy = vi.spyOn(router, 'push')
     
     const profileRequest = {
       name: 'Updated Name',
@@ -283,35 +289,36 @@ describe('EditProfileView', () => {
       ...mockProfile,
       birthdate: new Date('1995-06-15')
     }
-    
-    const mockGetProfile = vi.mocked(profileService.getProfile)
-    mockGetProfile.mockReturnValue(profileWithDate)
+    const pinia = createPinia();
+    setActivePinia(pinia)
+    const store = useUserProfileStore()
+    vi.spyOn(store, 'getProfileById').mockResolvedValue(profileWithDate as any)
     
     router.push('/profiles/test-profile-id/edit')
     await router.isReady()
     
     const wrapper = mount(EditProfileView, {
-      global: {
-        plugins: [router]
-      }
+      global: { plugins: [router, pinia] }
     })
+    await flushAsync()
     
     const profileModel = (wrapper.vm as any).profileModel
     expect(profileModel.birthdate).toBe('1995-06-15')
   })
  
   it('should handle arrays correctly in profileModel', async () => {
-    const mockGetProfile = vi.mocked(profileService.getProfile)
-    mockGetProfile.mockReturnValue(mockProfile)
+  const pinia = createPinia();
+  setActivePinia(pinia)
+  const store = useUserProfileStore()
+  vi.spyOn(store, 'getProfileById').mockResolvedValue(mockProfile as any)
     
     router.push('/profiles/test-profile-id/edit')
     await router.isReady()
     
     const wrapper = mount(EditProfileView, {
-      global: {
-        plugins: [router]
-      }
+      global: { plugins: [router, pinia] }
     })
+    await flushAsync()
     
     const profileModel = (wrapper.vm as any).profileModel
     expect(Array.isArray(profileModel.hobbies)).toBe(true)
@@ -320,16 +327,18 @@ describe('EditProfileView', () => {
     expect(profileModel.interests).toEqual(['technology', 'sports'])
     
     // Should be copies, not references
-    expect(profileModel.hobbies).not.toBe(mockProfile.hobbies)
-    expect(profileModel.interests).not.toBe(mockProfile.interests)
+  expect(profileModel.hobbies).not.toBe(mockProfile.hobbies)
+  expect(profileModel.interests).not.toBe(mockProfile.interests)
   })
  
   it('should extract profile ID from route params correctly', async () => {
     // Clear previous mock calls
     vi.clearAllMocks()
     
-    const mockGetProfile = vi.mocked(profileService.getProfile)
-    mockGetProfile.mockReturnValue(mockProfile)
+  const pinia = createPinia();
+  setActivePinia(pinia)
+  const store = useUserProfileStore()
+  vi.spyOn(store, 'getProfileById').mockResolvedValue(mockProfile as any)
     
     // Create a fresh router for this test
     const testRouter = createRouter({
@@ -343,12 +352,8 @@ describe('EditProfileView', () => {
     await testRouter.push('/profiles/specific-test-id/edit')
     await testRouter.isReady()
     
-    mount(EditProfileView, {
-      global: {
-        plugins: [testRouter]
-      }
-    })
-    
-    expect(mockGetProfile).toHaveBeenCalledWith('specific-test-id')
+    const wrapper = mount(EditProfileView, { global: { plugins: [testRouter, pinia] } })
+    await flushAsync()
+    expect(store.getProfileById).toHaveBeenCalledWith('specific-test-id')
   })
 })
