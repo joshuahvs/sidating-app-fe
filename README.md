@@ -6,6 +6,11 @@ Setelah git cherry-pick dijalankan di branch feat/tutorial-6, file tutorial-6/in
 
 referensi: https://git-scm.com/docs/git-cherry-pick
 
-## 2. 
+## 2. Apa yang penyebab dari konflik tersebut?
+Konflik muncul saat `git merge tutorial6-for-merge` ke `feat/tutorial-6` karena kedua branch melakukan perubahan pada bagian/baris yang sama di `tutorial-6/index.vue`. Karena commit “add conflict text at feat/tutorial-6” dan “tutorial6: add text at tutorial6-for-merge” memiliki perubahan dibagian yang sama (overlapping changes), sehingga Git tidak bisa menggabungkan otomatis dan menandai file dengan penanda konflik (`<<<<<<<`, `=======`, `>>>>>>>`).  
+
+Referensi: https://git-scm.com/docs/git-merge
+
+## 3. 
 
 ![Screenshot](docs/images/screenshot1.png)
