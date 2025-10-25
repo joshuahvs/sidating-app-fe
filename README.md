@@ -56,6 +56,10 @@ referensi: https://git-scm.com/docs/git-stash
 
 referensi: https://git-scm.com/docs/git-reset
 
+## 7. Apa itu git revert? Apa perbedaanya dengan git reset?
+Git revert itu membatalkan perubahan dengan cara membuat commit baru yang membalikkan efek commit tertentu, sehingga riwayat tetap utuh. Jadi, dia seperti menghapus commit tertentu yang kita inginkan. Sedangkan, git reset memindahkan HEAD/branch ke commit lain dan menyesuaikan index serta working tree sesuai mode (`--soft`, `--mixed`, `--hard`). Jadi, dengan git reset ini kita seperti kembali ke versi yang sebelumnya.
+
+referensi: https://www.atlassian.com/git/tutorials/resetting-checking-out-and-reverting
 
 
 ![Screenshot](docs/images/screenshot1.png)
