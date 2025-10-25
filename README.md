@@ -44,4 +44,11 @@ Merge:
 ```
 referensi: https://www.atlassian.com/git/tutorials/merging-vs-rebasing
 
+## 5. Mengapa hal pada langkah no 4 bisa terjadi? Mengapa git stash menjadi solusinya? Bagaimana jika kita tidak melakukan Git Stash Pop?
+- Saat checkout ke branch lain, ada perubahan lokal yang ada pada `tutorial-6/git-stash/stash.vue` yang akan tertimpa oleh isi branch tujuan. Jadi, git memblokir checkout untuk mencegah hilangnya perubahan yang belum ter-commit.
+- Git stash menjadi solusinya karena `git stash` menyimpan snapshot perubahan di working directory dan index ke stack “stash”, lalu membersihkan working tree sehingga checkout/merge/rebase bisa dilakukan tanpa konflik. Setelah pindah branch, perubahan bisa dikembalikan.
+- Jika tidak melakukan git stash pop, maka perubahan tetap aman di stack stash dan tidak muncul di working tree/cabang mana pun. Jadi, perubahan itu tidak ikut ter-commit.
+
+referensi: https://git-scm.com/docs/git-stash
+
 ![Screenshot](docs/images/screenshot1.png)
