@@ -61,5 +61,17 @@ Git revert itu membatalkan perubahan dengan cara membuat commit baru yang membal
 
 referensi: https://www.atlassian.com/git/tutorials/resetting-checking-out-and-reverting
 
+## 8. Buatlah grafik yang menggambarkan alur commit pada bagian Git Flow and Branching ini serta jelaskan! Grafik dapat berupa tulis tangan maupun menggunakan software. 
+![Grafik No 8](docs/images/no8.jpg)
+Pertama, branch development dibuat dari main yang sudah up-to-date, lalu menambahkan file base.vue. Lalu, branch feature-a dibuat dari development, kemudian mengedit base.vue dengan menambahkan "This line is from feature-a". Kemudian, branch feature-a di-push dan di-merge ke development. Lalu, branch feature-b juga dibuat dari development versi lokal, dan mengedit base.vue dengan menambahkan "This line is from feature-b". Kemudian, branch feature-b di-push dan di-merge ke development. Namun, saat melakukan git pull origin development --rebase, terjadi CONFLICT karena feature-a dan feature-b mengedit baris yang sama di base.vue Conflict diselesaikan dengan menerima kedua perubahan (accept both changes), membuat commit baru, lalu melanjutkan rebase dengan git rebase --continue. Setelah conflict selesai, feature-b di-push dan di-merge ke development.
+
+referensi: https://git-scm.com/docs/git-merge, https://git-scm.com/docs/git-rebase
+
+## 9. Kalian diminta untuk membuat skenario kerja repositori Front End tim dalam proyek tugas kelompok APAP yang menggunakan Git Flow dan Branching Strategy. Buatlah grafik bayangan yang akan menggambarkan alur commit kalian hingga branch main yang siap untuk dideploy. Catatan: Asumsikan terdapat 5 orang yang akan mengakses repositori tersebut yaitu orang A-E.
+Contoh skenario kerja repository front end tim tugas kelompok APAP:
+![No 9](docs/images/no9.jpg)
+Proyek dimulai dari cabang utama yang berfungsi sebagai versi stabil untuk rilis (produksi). Dari main, dibuat cabang pengembangan sebagai cabang utama tempat seluruh fitur dikembangkan dan diuji sebelum digabungkan ke produksi. Setiap anggota tim (A–E) memiliki cabang fitur masing-masing, misalnya feat-a, feat-b, feat-c, feat-d, dan feat-e. Setiap fitur cabang berisi serangkaian commit yang menggambarkan perkembangan fitur. Setelah fitur selesai, cabang tersebut di-merge ke pengembangan melalui merge request (Merge A–E). Setelah beberapa fitur digabung dan diuji di pengembangan, cabang ini kemudian di-merge ke main untuk membuat versi rilis baru (contohnya v1.1.0). Pada salah satu proses integrasi, jika terjadi konflik di cabang feat, maka selesaikan conflict. Jika semua fitur sudah jadi, dan sudah di push ke development, dan tidak ada error, maka merge development ke main untuk versi final.
+
+
 
 ![Screenshot](docs/images/screenshot1.png)
