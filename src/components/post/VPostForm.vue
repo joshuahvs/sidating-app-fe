@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import VInput from '@/components/common/VInput.vue';
+import VSelect from '@/components/common/VSelect.vue';
 import VTextArea from '@/components/common/VTextArea.vue';
 import VButton from '@/components/common/VButton.vue';
-import { type PropType, toRefs, watch } from 'vue';
+import { type PropType, ref, watch } from 'vue';
 import type { PostRequest } from '@/interfaces/post.interface';
 import { useRouter } from 'vue-router';
 
 const router = useRouter();
+
+type UserOption = { id: string; name: string };
 
 const props = defineProps({
   action: {
@@ -16,16 +19,20 @@ const props = defineProps({
   postModel: {
     type: Object as PropType<PostRequest>,
     required: true,
+  },
+  userOptions: {
+    type: Array as PropType<UserOption[]>,
+    required: true,
   }
 })
 
-const model = toRefs(props).postModel;
+// Create a local editable copy to avoid mutating readonly props
+const model = ref<PostRequest>({ ...props.postModel });
 
-const emit = defineEmits(['update:modelValue']);
-
-watch(() => model, (newValue) => {
-  emit('update:modelValue', newValue);
-}, { deep: true });
+// Keep local model in sync if parent prop changes (e.g., when data loads async)
+watch(() => props.postModel, (val) => {
+  if (val) model.value = { ...val };
+}, { deep: true, immediate: true });
 
 const handleSubmit = async () => await props.action(model.value)
 </script>
@@ -33,7 +40,12 @@ const handleSubmit = async () => await props.action(model.value)
 <template>
   <form @submit.prevent="handleSubmit" class="flex flex-col gap-6 py-4">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <VInput v-model="model.userId" id="userId" name="userId" label="User ID" />
+      <VSelect v-model="model.userId" id="userId" name="userId" label="User">
+        <option value="">Pilih User</option>
+        <option v-for="u in userOptions" :key="u.id" :value="u.id">
+          {{ u.name }}
+        </option>
+      </VSelect>
       <VInput v-model="model.imageUrl" id="imageUrl" name="imageUrl" label="Image URL" />
     </div>
     <VTextArea v-model="model.caption" id="caption" name="caption" label="Caption" />

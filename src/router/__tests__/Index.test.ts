@@ -9,7 +9,8 @@ import ProfileView from '../../views/ProfileView.vue'
 describe('Router', () => {
   it('should have correct route configuration', () => {
     const routes = router.getRoutes()
-    expect(routes).toHaveLength(5)
+    // Current app has 9 routes (home, posts list/detail/add/edit, profiles list/detail/add/edit)
+    expect(routes).toHaveLength(9)
 
     // Home route
     const homeRoute = routes.find(route => route.path === '/')
@@ -37,6 +38,12 @@ describe('Router', () => {
     const detailProfileRoute = routes.find(route => route.path === '/profiles/:id')
     expect(detailProfileRoute).toBeDefined()
     expect(detailProfileRoute?.name).toBe('detail-profile')
+
+    // Posts routes sanity check
+    expect(routes.find(r => r.path === '/posts')).toBeDefined()
+    expect(routes.find(r => r.path === '/posts/add')).toBeDefined()
+    expect(routes.find(r => r.path === '/posts/:id')).toBeDefined()
+    expect(routes.find(r => r.path === '/posts/:id/edit')).toBeDefined()
   })
 
   it('should navigate to home route', async () => {

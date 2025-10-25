@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import VButton from '@/components/common/VButton.vue';
-import { postService } from '@/services/post.service';
-import { toast } from 'vue-sonner';
+import { usePostStore } from '@/stores/post/post.store';
 
 const emit = defineEmits(['deleted']);
 
@@ -12,14 +11,11 @@ const { postId } = defineProps({
   },
 });
 
-const deletePost = () => {
-  const removed = postService.deletePost(postId);
-  if (removed) {
-    toast.success('Post deleted successfully');
-    emit('deleted', postId);
-  } else {
-    toast.error('Failed to delete post');
-  }
+const postStore = usePostStore();
+
+const deletePost = async () => {
+  const removed = await postStore.deletePost(postId);
+  if (removed) emit('deleted', postId);
 };
 </script>
 

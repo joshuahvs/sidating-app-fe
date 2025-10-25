@@ -2,24 +2,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createRouter, createWebHistory } from 'vue-router'
 import ProfileView from '../ProfileView.vue'
-import { profileService } from '../../services/profile.service'
-
-// Mock the profile service
-vi.mock('@/services/profile.service', () => ({
-  profileService: {
-    getAllProfiles: vi.fn()
-  }
-}))
-
-// Mock DataTable
-vi.mock('simple-datatables', () => ({
-  DataTable: vi.fn().mockImplementation(() => ({
-    destroy: vi.fn(),
-    rows: vi.fn(() => ({
-      remove: vi.fn()
-    }))
-  }))
-}))
+import { createPinia, setActivePinia } from 'pinia'
+import { useUserProfileStore } from '../../stores/profile/profile.store'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -34,16 +18,7 @@ const router = createRouter({
 describe('ProfileView', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-
-    // Mock DOM methods used by DataTable logic
-    Object.defineProperty(document, 'getElementById', {
-      writable: true,
-      value: vi.fn().mockReturnValue(document.createElement('table'))
-    })
-    Object.defineProperty(document, 'querySelector', {
-      writable: true,
-      value: vi.fn().mockReturnValue(document.createElement('tr'))
-    })
+    setActivePinia(createPinia())
   })
 
   const mockProfiles = [
@@ -82,32 +57,37 @@ describe('ProfileView', () => {
   ]
 
   it('should render correctly with profiles', async () => {
-    const mockGetAllProfiles = vi.mocked(profileService.getAllProfiles)
-    mockGetAllProfiles.mockReturnValue(mockProfiles)
+    const pinia = createPinia();
+    setActivePinia(pinia)
+    const store = useUserProfileStore()
+    store.profiles = [...mockProfiles] as any
+    vi.spyOn(store, 'fetchProfiles').mockResolvedValue(mockProfiles as any)
 
     router.push('/profiles')
     await router.isReady()
 
     const wrapper = mount(ProfileView, {
       global: {
-        plugins: [router]
+        plugins: [router, pinia]
       }
     })
-
-    expect(wrapper.find('table#profiles-table').exists()).toBe(true)
+    expect(wrapper.find('table').exists()).toBe(true)
     expect(wrapper.findAll('tbody tr')).toHaveLength(2)
   })
 
   it('should display profile data in table rows', async () => {
-    const mockGetAllProfiles = vi.mocked(profileService.getAllProfiles)
-    mockGetAllProfiles.mockReturnValue(mockProfiles)
+    const pinia = createPinia();
+    setActivePinia(pinia)
+    const store = useUserProfileStore()
+    store.profiles = [...mockProfiles] as any
+    vi.spyOn(store, 'fetchProfiles').mockResolvedValue(mockProfiles as any)
 
     router.push('/profiles')
     await router.isReady()
 
     const wrapper = mount(ProfileView, {
       global: {
-        plugins: [router]
+        plugins: [router, pinia]
       }
     })
 
@@ -125,15 +105,18 @@ describe('ProfileView', () => {
   })
 
   it('should have correct table headers', async () => {
-    const mockGetAllProfiles = vi.mocked(profileService.getAllProfiles)
-    mockGetAllProfiles.mockReturnValue([])
+    const pinia = createPinia();
+    setActivePinia(pinia)
+    const store = useUserProfileStore()
+    store.profiles = [] as any
+    vi.spyOn(store, 'fetchProfiles').mockResolvedValue([] as any)
 
     router.push('/profiles')
     await router.isReady()
 
     const wrapper = mount(ProfileView, {
       global: {
-        plugins: [router]
+        plugins: [router, pinia]
       }
     })
 
@@ -145,15 +128,18 @@ describe('ProfileView', () => {
   })
 
   it('should have action buttons for each profile', async () => {
-    const mockGetAllProfiles = vi.mocked(profileService.getAllProfiles)
-    mockGetAllProfiles.mockReturnValue(mockProfiles)
+    const pinia = createPinia();
+    setActivePinia(pinia)
+    const store = useUserProfileStore()
+    store.profiles = [...mockProfiles] as any
+    vi.spyOn(store, 'fetchProfiles').mockResolvedValue(mockProfiles as any)
 
     router.push('/profiles')
     await router.isReady()
 
     const wrapper = mount(ProfileView, {
       global: {
-        plugins: [router]
+        plugins: [router, pinia]
       }
     })
 
@@ -169,15 +155,18 @@ describe('ProfileView', () => {
   })
 
   it('should have add profile button', async () => {
-    const mockGetAllProfiles = vi.mocked(profileService.getAllProfiles)
-    mockGetAllProfiles.mockReturnValue([])
+    const pinia = createPinia();
+    setActivePinia(pinia)
+    const store = useUserProfileStore()
+    store.profiles = [] as any
+    vi.spyOn(store, 'fetchProfiles').mockResolvedValue([] as any)
 
     router.push('/profiles')
     await router.isReady()
 
     const wrapper = mount(ProfileView, {
       global: {
-        plugins: [router]
+        plugins: [router, pinia]
       }
     })
 
@@ -186,66 +175,47 @@ describe('ProfileView', () => {
     expect(addButton.text()).toBe('Buat Profil Baru')
   })
 
-  it('should handle profile deletion', async () => {
-    const mockGetAllProfiles = vi.mocked(profileService.getAllProfiles)
-    mockGetAllProfiles.mockReturnValue(mockProfiles)
+  it('should update rows when store profiles change (reactivity)', async () => {
+    const pinia = createPinia();
+    setActivePinia(pinia)
+    const store = useUserProfileStore()
+    store.profiles = [...mockProfiles] as any
+    vi.spyOn(store, 'fetchProfiles').mockResolvedValue(mockProfiles as any)
 
     router.push('/profiles')
     await router.isReady()
 
     const wrapper = mount(ProfileView, {
       global: {
-        plugins: [router]
+        plugins: [router, pinia]
       }
     })
 
-    // Emit deleted event
-    const deleteButton = wrapper.findComponent({ name: 'VDeleteProfileButton' })
-    await deleteButton.vm.$emit('deleted', '1')
-
-    expect((wrapper.vm as any).profiles.length).toBe(1)
-    expect((wrapper.vm as any).profiles[0].id).toBe('2')
+    expect(wrapper.findAll('tbody tr')).toHaveLength(2)
+    // mutate store
+    store.profiles = [mockProfiles[0]] as any
+    await wrapper.vm.$nextTick()
+    expect(wrapper.findAll('tbody tr')).toHaveLength(1)
   })
 
   it('should render empty table when no profiles exist', async () => {
-    const mockGetAllProfiles = vi.mocked(profileService.getAllProfiles)
-    mockGetAllProfiles.mockReturnValue([])
+    const pinia = createPinia();
+    setActivePinia(pinia)
+    const store = useUserProfileStore()
+    store.profiles = [] as any
+    vi.spyOn(store, 'fetchProfiles').mockResolvedValue([] as any)
 
     router.push('/profiles')
     await router.isReady()
 
     const wrapper = mount(ProfileView, {
       global: {
-        plugins: [router]
+        plugins: [router, pinia]
       }
     })
 
-    expect(wrapper.findAll('tbody tr')).toHaveLength(0)
-  })
-
-  it('should destroy existing DataTable when rebuilding', async () => {
-    const mockGetAllProfiles = vi.mocked(profileService.getAllProfiles)
-    mockGetAllProfiles.mockReturnValue(mockProfiles)
-
-    router.push('/profiles')
-    await router.isReady()
-
-    const wrapper = mount(ProfileView, {
-      global: {
-        plugins: [router]
-      }
-    })
-
-    const mockDestroy = vi.fn()
-    const mockDataTable = {
-      destroy: mockDestroy,
-      rows: vi.fn(() => ({ remove: vi.fn() }))
-    }
-
-    ;(wrapper.vm as any).dt = mockDataTable
-    ;(wrapper.vm as any).buildDataTable()
-
-    expect(mockDestroy).toHaveBeenCalled()
-    expect(mockDestroy).toHaveBeenCalledTimes(1)
+    const rows = wrapper.findAll('tbody tr')
+    expect(rows).toHaveLength(1)
+    expect(rows[0].text()).toContain('No data available')
   })
 })

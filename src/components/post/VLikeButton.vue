@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, watchEffect } from 'vue';
-import { postService } from '@/services/post.service';
+import { usePostStore } from '@/stores/post/post.store';
 
 const emit = defineEmits(['liked']);
 
@@ -11,27 +11,23 @@ const props = defineProps({
 
 const liked = ref(false);
 const likesCount = ref(0);
+const postStore = usePostStore();
 
 watchEffect(() => {
-  const post = postService.getPost(props.postId);
+  const post = postStore.posts.find(p => p.id === props.postId);
   if (post) {
     likesCount.value = post.likes.length;
     liked.value = post.likes.includes(props.currentUserId);
   }
 });
 
-const toggleLike = () => {
-  const post = postService.getPost(props.postId);
-  if (!post) return;
-  if (liked.value) {
-    post.likes = post.likes.filter(u => u !== props.currentUserId);
-  } else {
-    postService.likePost(props.postId, props.currentUserId);
+const toggleLike = async () => {
+  const updated = await postStore.likePost(props.postId, props.currentUserId);
+  if (updated) {
+    likesCount.value = updated.likes.length;
+    liked.value = updated.likes.includes(props.currentUserId);
+    emit('liked', { postId: props.postId, liked: liked.value });
   }
-  // refresh state
-  likesCount.value = post.likes.length;
-  liked.value = post.likes.includes(props.currentUserId);
-  emit('liked', { postId: props.postId, liked: liked.value });
 };
 </script>
 

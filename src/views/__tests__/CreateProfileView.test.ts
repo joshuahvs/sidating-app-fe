@@ -1,16 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createRouter, createWebHistory } from 'vue-router'
+import { nextTick } from 'vue'
 import CreateProfileView from '../CreateProfileView.vue'
-import { profileService } from '@/services/profile.service'
 import { toast } from 'vue-sonner'
+import { createPinia, setActivePinia } from 'pinia'
+import { useUserProfileStore } from '../../stores/profile/profile.store'
 
-// Mock profile service
-vi.mock('@/services/profile.service', () => ({
-  profileService: {
-    createProfile: vi.fn()
-  }
-}))
+// Spy toast
 
 // Mock toast
 vi.mock('vue-sonner', () => ({
@@ -31,6 +28,7 @@ const router = createRouter({
 describe('CreateProfileView', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    setActivePinia(createPinia())
   })
 
   it('should render correctly', async () => {
@@ -110,9 +108,11 @@ describe('CreateProfileView', () => {
     expect(profileModel.interests).toEqual([])
   })
 
-  it('should call profileService.createProfile when addProfile is called', async () => {
-    const mockCreateProfile = vi.mocked(profileService.createProfile)
-    mockCreateProfile.mockReturnValue({
+  it('should call store.createProfile when addProfile is called', async () => {
+    const pinia = createPinia();
+    setActivePinia(pinia);
+    const store = useUserProfileStore()
+    const mockCreateProfile = vi.spyOn(store, 'createProfile').mockResolvedValue({
       id: 'test-id',
       name: 'Test User',
       nickname: 'testuser',
@@ -129,18 +129,16 @@ describe('CreateProfileView', () => {
       isActive: true
     })
 
-    const mockPush = vi.fn()
-    const mockRouter = { push: mockPush }
-
     router.push('/profiles/add')
     await router.isReady()
 
     const wrapper = mount(CreateProfileView, {
       global: {
-        plugins: [router],
-        mocks: { $router: mockRouter }
+        plugins: [router, pinia]
       }
     })
+
+    const pushSpy = vi.spyOn(router, 'push')
 
     const profileRequest = {
       name: 'Test User',
@@ -156,20 +154,22 @@ describe('CreateProfileView', () => {
     }
 
     await (wrapper.vm as any).addProfile(profileRequest)
-
+    await nextTick()
+    
     expect(mockCreateProfile).toHaveBeenCalledWith(profileRequest)
-    expect(toast.success).toHaveBeenCalledWith('Profile created successfully')
+    // Navigation asserted via router push
+    expect(pushSpy).toHaveBeenCalledWith('/profiles')
   })
 
-  it('should show error toast when profile creation fails', async () => {
-    const mockCreateProfile = vi.mocked(profileService.createProfile)
-    mockCreateProfile.mockReturnValue(null)
+  it('should not navigate when profile creation fails', async () => {
+    const store = useUserProfileStore()
+    const mockCreateProfile = vi.spyOn(store, 'createProfile').mockResolvedValue(undefined as any)
 
     router.push('/profiles/add')
     await router.isReady()
 
     const wrapper = mount(CreateProfileView, {
-      global: { plugins: [router] }
+      global: { plugins: [router, createPinia()] }
     })
 
     const profileRequest = {
@@ -186,8 +186,7 @@ describe('CreateProfileView', () => {
     }
 
     await (wrapper.vm as any).addProfile(profileRequest)
-
-    expect(toast.error).toHaveBeenCalledWith('Failed to create profile')
-    expect(toast.success).not.toHaveBeenCalled()
+    // No navigation on failure
+    expect((wrapper.vm as any).$router.currentRoute.value.path).toBe('/profiles/add')
   })
 })
