@@ -1,10 +1,11 @@
 import type { UserProfile, UserProfileRequest } from '@/interfaces/profile.interface';
 import { defineStore } from 'pinia'
-import axios from "axios";
+import { http } from "@/lib/http";
 import { toast } from 'vue-sonner';
 import type { CommonResponseInterface } from '@/interfaces/common.response.interface';
 import { useRouter } from 'vue-router';
 import { getAuthToken, handleAuthError } from '@/lib/auth';
+import axios from 'axios';
 
 const baseUserProfileUrl = import.meta.env.VITE_API_URL + '/profile';
 
@@ -21,11 +22,7 @@ export const useUserProfileStore = defineStore('userProfile', {
             const router = useRouter();
             const token = getAuthToken();
             try {
-                const response = await axios.get<CommonResponseInterface<UserProfile[]>>(baseUserProfileUrl, {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
-                });
+                const response = await http.get<CommonResponseInterface<UserProfile[]>>(baseUserProfileUrl);
 
                 this.profiles = response.data.data;
                 if (this.profiles.length === 0) {
@@ -50,7 +47,7 @@ export const useUserProfileStore = defineStore('userProfile', {
             this.loading = true;
             this.error = null;
             try {
-                const response = await axios.get<CommonResponseInterface<UserProfile>>(`${baseUserProfileUrl}/${profileId}`);
+                const response = await http.get<CommonResponseInterface<UserProfile>>(`${baseUserProfileUrl}/${profileId}`);
                 return response.data.data;
             } catch (error) {
                 this.error = error instanceof Error ? error.message : 'Unknown error';
@@ -66,7 +63,7 @@ export const useUserProfileStore = defineStore('userProfile', {
             this.error = null;
 
             try {
-                const response = await axios.post<CommonResponseInterface<UserProfile>>(`${baseUserProfileUrl}/create`, profileData);
+                const response = await http.post<CommonResponseInterface<UserProfile>>(`${baseUserProfileUrl}/create`, profileData);
                 if (response.status === 201) {
                     this.profiles.push(response.data.data);
                     toast.success('Profil berhasil dibuat')
@@ -89,7 +86,7 @@ export const useUserProfileStore = defineStore('userProfile', {
             this.error = null;
 
             try {
-                const response = await axios.put<CommonResponseInterface<UserProfile>>(`${baseUserProfileUrl}/update`, profileData);
+                const response = await http.put<CommonResponseInterface<UserProfile>>(`${baseUserProfileUrl}/update`, profileData);
 
                 if (response.status === 200) {
                     toast.success('Profil berhasil diperbarui')
@@ -113,7 +110,7 @@ export const useUserProfileStore = defineStore('userProfile', {
             this.loading = true;
             this.error = null;
             try {
-                const response = await axios.delete<CommonResponseInterface<UserProfile>>(`${baseUserProfileUrl}/delete/${profileId}`);
+                const response = await http.delete<CommonResponseInterface<UserProfile>>(`${baseUserProfileUrl}/delete/${profileId}`);
                 if (response.status === 200) {
                     await this.fetchProfiles();
                     toast.success('Profil berhasil dihapus: Data profil telah berhasil dihapus.');
