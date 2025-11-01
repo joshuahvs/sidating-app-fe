@@ -4,9 +4,15 @@ import VLogoutButton from '../auth/VLogoutButton.vue'
 import VButton from '../common/VButton.vue'
 import { isAuthenticated, isAdmin } from '@/lib/rbac'
 import { getCurrentUser } from '@/lib/auth'
+import { computed } from 'vue'
 
 const route = useRoute()
 const userId = getCurrentUser()?.id
+
+// Profile link redirects to /profiles for admin, /profiles/:userId for regular user
+const profileLink = computed(() => {
+  return isAdmin() ? '/profiles' : `/profiles/${userId}`
+})
 
 const getLinkClass = (path: string) =>
   route.path === path ? 'text-pink-600' : 'text-black hover:text-pink-600'
@@ -18,9 +24,10 @@ const getLinkClass = (path: string) =>
 
     <div v-if="isAuthenticated()">
       <nav class="flex gap-4">
-        <RouterLink to="/profiles" :class="getLinkClass('/profiles')" v-if="isAdmin()">Profile</RouterLink>
+        <RouterLink :to="profileLink" :class="getLinkClass(profileLink)">
+          {{ isAdmin() ? 'Profile' : 'My Profile' }}
+        </RouterLink>
         <RouterLink to="/posts" :class="getLinkClass('/posts')">Post</RouterLink>
-        <RouterLink :to="`/profiles/${userId}`" :class="getLinkClass(`/profiles/${userId}`)">My Profile</RouterLink>
       </nav>
     </div>
 

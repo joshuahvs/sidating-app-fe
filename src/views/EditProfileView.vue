@@ -20,6 +20,9 @@ const profileModel = reactive<UserProfileRequest>({
   location: '',
   hobbies: [],
   interests: [],
+  username: '',
+  roleName: '',
+  isActive: true,
 })
 onMounted(async () => {
   const existing = await userProfileStore.getProfileById(id)
@@ -39,6 +42,9 @@ onMounted(async () => {
   profileModel.location = existing.location || ''
   profileModel.hobbies = existing.hobbies ? [...existing.hobbies] : []
   profileModel.interests = existing.interests ? [...existing.interests] : []
+  profileModel.username = existing.username || ''
+  profileModel.roleName = existing.roleName || 'User'
+  profileModel.isActive = existing.isActive ?? true
 })
 const updateProfile = async (bodyRequest: UserProfileRequest) => {
   const result = await userProfileStore.updateProfile({

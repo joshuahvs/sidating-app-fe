@@ -2,6 +2,8 @@ export interface UserProfile {
   id: string;
   name: string;
   nickname: string;
+  username?: string;
+  roleName?: string;
   birthdate: Date;
   hobbies: string[];
   gender: string;
@@ -29,6 +31,8 @@ export interface UserProfileRequest {
     interests: string [];
     username?: string;
     password?: string;
+    roleName?: string;
+    isActive?: boolean;
 }
 
 export interface CurrentUser {
