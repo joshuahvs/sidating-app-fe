@@ -3,6 +3,8 @@ import { defineStore } from 'pinia'
 import axios from "axios";
 import { toast } from 'vue-sonner';
 import type { CommonResponseInterface } from '@/interfaces/common.response.interface';
+import { useRouter } from 'vue-router';
+import { getAuthToken, handleAuthError } from '@/lib/auth';
 
 const baseUserProfileUrl = import.meta.env.VITE_API_URL + '/profile';
 
@@ -16,9 +18,15 @@ export const useUserProfileStore = defineStore('userProfile', {
         async fetchProfiles() {
             this.loading = true;
             this.error = null;
-
+            const router = useRouter();
+            const token = getAuthToken();
             try {
-                const response = await axios.get<CommonResponseInterface<UserProfile[]>>(baseUserProfileUrl);
+                const response = await axios.get<CommonResponseInterface<UserProfile[]>>(baseUserProfileUrl, {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                });
+
                 this.profiles = response.data.data;
                 if (this.profiles.length === 0) {
                     toast.warning('Data profil kosong')
@@ -28,6 +36,9 @@ export const useUserProfileStore = defineStore('userProfile', {
                 }
                 return response.data.data;
             } catch (error) {
+                if (axios.isAxiosError(error) && error.response) {
+                    await handleAuthError(error.response.status, router);
+                }
                 this.error = error instanceof Error ? error.message : 'Unknown error';
                 toast.error(`Error saat memuat profil: ${this.error}`);
             } finally {
