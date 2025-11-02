@@ -1,5 +1,7 @@
 import { defineStore } from 'pinia';
 import axios from 'axios';
+import { http } from '@/lib/http';
+import { getCurrentUser } from '@/lib/auth';
 import { toast } from 'vue-sonner';
 import type { Post, PostRequest } from '@/interfaces/post.interface';
 import type { CommonResponseInterface } from '@/interfaces/common.response.interface';
@@ -55,7 +57,7 @@ export const usePostStore = defineStore('posts', {
       this.loading = true;
       this.error = null;
       try {
-        const { data } = await axios.get<CommonResponseInterface<PostResponseDTO[]>>(basePostUrl, { params });
+  const { data } = await http.get<CommonResponseInterface<PostResponseDTO[]>>(basePostUrl, { params });
         this.posts = (data.data || []).map(mapDto);
         if (this.posts.length === 0) toast.warning('Data post kosong'); else toast.success('Data post berhasil dimuat');
         return this.posts;
@@ -72,7 +74,7 @@ export const usePostStore = defineStore('posts', {
       this.loading = true;
       this.error = null;
       try {
-        const { data } = await axios.get<CommonResponseInterface<PostResponseDTO>>(`${basePostUrl}/${id}`);
+  const { data } = await http.get<CommonResponseInterface<PostResponseDTO>>(`${basePostUrl}/${id}`);
         return data.data ? mapDto(data.data) : null;
       } catch (e: any) {
         this.error = e?.message || 'Unknown error';
@@ -87,8 +89,10 @@ export const usePostStore = defineStore('posts', {
       this.loading = true;
       this.error = null;
       try {
-        const payload = { userProfileId: body.userId, imageUrl: body.imageUrl, caption: body.caption };
-        const { data, status } = await axios.post<CommonResponseInterface<PostResponseDTO>>(`${basePostUrl}/create`, payload);
+  const current = getCurrentUser();
+  const userId = body.userId || current?.id || '';
+  const payload = { userProfileId: userId, imageUrl: body.imageUrl, caption: body.caption };
+  const { data, status } = await http.post<CommonResponseInterface<PostResponseDTO>>(`${basePostUrl}/create`, payload);
         if (status === 201) {
           const created = mapDto(data.data);
           this.posts.push(created);
@@ -110,8 +114,10 @@ export const usePostStore = defineStore('posts', {
       this.loading = true;
       this.error = null;
       try {
-        const payload = { id, userProfileId: body.userId, imageUrl: body.imageUrl, caption: body.caption };
-        const { data, status } = await axios.put<CommonResponseInterface<PostResponseDTO>>(`${basePostUrl}/update`, payload);
+  const current = getCurrentUser();
+  const userId = body.userId || current?.id || '';
+  const payload = { id, userProfileId: userId, imageUrl: body.imageUrl, caption: body.caption };
+  const { data, status } = await http.put<CommonResponseInterface<PostResponseDTO>>(`${basePostUrl}/update`, payload);
         if (status === 200) {
           const updated = mapDto(data.data);
           this.posts = this.posts.map(p => (p.id === id ? updated : p));
@@ -136,7 +142,7 @@ export const usePostStore = defineStore('posts', {
       this.posts = this.posts.filter(p => p.id !== id);
 
       try {
-        const response = await axios.request<CommonResponseInterface<PostResponseDTO>>({
+        const response = await http.request<CommonResponseInterface<PostResponseDTO>>({
           method: 'DELETE',
           url: `${basePostUrl}/delete`,
           headers: { 'Content-Type': 'application/json' },
@@ -172,8 +178,10 @@ export const usePostStore = defineStore('posts', {
       this.loading = true;
       this.error = null;
       try {
-        const payload = { postId, userId };
-        const { data, status } = await axios.post<CommonResponseInterface<PostResponseDTO>>(`${basePostUrl}/like`, payload);
+  const current = getCurrentUser();
+  const actingUserId = userId || current?.id || '';
+  const payload = { postId, userId: actingUserId };
+  const { data, status } = await http.post<CommonResponseInterface<PostResponseDTO>>(`${basePostUrl}/like`, payload);
         if (status === 200) {
           const updated = mapDto(data.data);
           this.posts = this.posts.map(p => (p.id === postId ? updated : p));
