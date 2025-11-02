@@ -1,25 +1,43 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createRouter, createWebHistory } from 'vue-router'
+import { createPinia } from 'pinia'
 import VNavbar from '../VNavbar.vue'
+
+// Mock the RBAC module
+vi.mock('@/lib/rbac', () => ({
+  isAuthenticated: vi.fn(() => true),
+  isAdmin: vi.fn(() => true),
+  canAccessProfile: vi.fn(() => true)
+}))
+
+// Mock the auth module
+vi.mock('@/lib/auth', () => ({
+  getCurrentUser: vi.fn(() => ({ id: '123', username: 'admin' }))
+}))
 
 const router = createRouter({
   history: createWebHistory(),
   routes: [
     { path: '/', component: { template: '<div>Home</div>' } },
-    { path: '/profiles', component: { template: '<div>Profiles</div>' } }
+    { path: '/profiles', component: { template: '<div>Profiles</div>' } },
+    { path: '/posts', component: { template: '<div>Posts</div>' } },
+    { path: '/login', component: { template: '<div>Login</div>' } }
   ]
 })
 
 describe('VNavbar', () => {
+  let pinia: ReturnType<typeof createPinia>
+
   beforeEach(async () => {
+    pinia = createPinia()
     await router.push('/')
     await router.isReady()
   })
 
   it('should render correctly', async () => {
     const wrapper = mount(VNavbar, {
-      global: { plugins: [router] }
+      global: { plugins: [router, pinia] }
     })
 
     expect(wrapper.find('header').exists()).toBe(true)
@@ -29,7 +47,7 @@ describe('VNavbar', () => {
 
   it('should have correct header structure and classes', async () => {
     const wrapper = mount(VNavbar, {
-      global: { plugins: [router] }
+      global: { plugins: [router, pinia] }
     })
 
     const header = wrapper.find('header')
@@ -48,7 +66,7 @@ describe('VNavbar', () => {
 
   it('should display SiDating brand link', async () => {
     const wrapper = mount(VNavbar, {
-      global: { plugins: [router] }
+      global: { plugins: [router, pinia] }
     })
 
     const brandLink = wrapper.findAllComponents({ name: 'RouterLink' })[0]
@@ -61,7 +79,7 @@ describe('VNavbar', () => {
 
   it('should display Profile navigation link', async () => {
     const wrapper = mount(VNavbar, {
-      global: { plugins: [router] }
+      global: { plugins: [router, pinia] }
     })
 
     const profileLink = wrapper.findAllComponents({ name: 'RouterLink' })[1]
@@ -74,7 +92,7 @@ describe('VNavbar', () => {
     await router.isReady()
 
     const wrapper = mount(VNavbar, {
-      global: { plugins: [router] }
+      global: { plugins: [router, pinia] }
     })
 
     const profileLink = wrapper.findAllComponents({ name: 'RouterLink' })[1]
@@ -89,7 +107,7 @@ describe('VNavbar', () => {
     await router.isReady()
 
     const wrapper = mount(VNavbar, {
-      global: { plugins: [router] }
+      global: { plugins: [router, pinia] }
     })
 
     const profileLink = wrapper.findAllComponents({ name: 'RouterLink' })[1]
@@ -100,7 +118,7 @@ describe('VNavbar', () => {
 
   it('should have navigation structure', async () => {
     const wrapper = mount(VNavbar, {
-      global: { plugins: [router] }
+      global: { plugins: [router, pinia] }
     })
 
     const nav = wrapper.find('nav')
@@ -116,7 +134,7 @@ describe('VNavbar', () => {
     await router.isReady()
 
     const wrapper = mount(VNavbar, {
-      global: { plugins: [router] }
+      global: { plugins: [router, pinia] }
     })
 
     // Test the getLinkClass function indirectly through the rendered classes
@@ -136,7 +154,7 @@ describe('VNavbar', () => {
 
   it('should have all RouterLinks', async () => {
     const wrapper = mount(VNavbar, {
-      global: { plugins: [router] }
+      global: { plugins: [router, pinia] }
     })
 
   const routerLinks = wrapper.findAllComponents({ name: 'RouterLink' })
@@ -151,7 +169,7 @@ describe('VNavbar', () => {
 
   it('should be accessible and semantic', async () => {
     const wrapper = mount(VNavbar, {
-      global: { plugins: [router] }
+      global: { plugins: [router, pinia] }
     })
 
     // Should use semantic HTML elements
