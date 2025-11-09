@@ -29,7 +29,7 @@ describe('HomeView', () => {
     expect(wrapper.find('h1 span').classes()).toContain('text-pink-600')
   })
 
-  it('should have a router link to profiles', async () => {
+  it('should have a router link to login', async () => {
     router.push('/')
     await router.isReady()
 
@@ -41,7 +41,8 @@ describe('HomeView', () => {
 
     const routerLink = wrapper.findComponent({ name: 'RouterLink' })
     expect(routerLink.exists()).toBe(true)
-    expect(routerLink.props('to')).toBe('/profiles')
+    // When not authenticated, should link to /login
+    expect(routerLink.props('to')).toBe('/login')
   })
 
   it('should have a button with correct text', async () => {
@@ -57,7 +58,8 @@ describe('HomeView', () => {
     // Find button by its actual element since VButton renders as button
     const button = wrapper.find('button')
     expect(button.exists()).toBe(true)
-    expect(button.text()).toBe('Ke Halaman Profile')
+    // When not authenticated, should show login text
+    expect(button.text()).toBe('Ke Halaman Login')
     expect(button.classes()).toContain('home-button')
   })
 

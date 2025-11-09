@@ -2,6 +2,8 @@ export interface UserProfile {
   id: string;
   name: string;
   nickname: string;
+  username?: string;
+  roleName?: string;
   birthdate: Date;
   hobbies: string[];
   gender: string;
@@ -16,19 +18,31 @@ export interface UserProfile {
 }
 
 export interface UserProfileRequest {
-  id?: string;
-  name: string;
-  nickname: string;
-  birthdate: string;
-  hobbies: string[];
-  gender: string;
-  location: string;
-  bio: string;
-  email: string;
-  phoneNumber: string;
-  interests: string[];
+    id?: string;
+    name: string;
+    nickname: string;
+    birthdate: string;
+    hobbies: string [];
+    gender: string;
+    location: string;
+    bio: string;
+    email: string;
+    phoneNumber: string;
+    interests: string [];
+    username?: string;
+    password?: string;
+    roleName?: string;
+    isActive?: boolean;
 }
 
+export interface CurrentUser {
+    id: string;
+    name: string;
+    username: string;
+    email: string;
+    roleName: string;
+    nickname: string
+}
 export interface UserProfileOptions {
   id: string;
   name?: string;

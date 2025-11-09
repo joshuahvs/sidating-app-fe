@@ -1,6 +1,6 @@
 import type { Post, PostRequest } from '@/interfaces/post.interface';
 import type { CommonResponseInterface } from '@/interfaces/common.response.interface';
-import axios from 'axios';
+import { http } from '@/lib/http';
 import { v4 as uuidv4 } from 'uuid';
 
 const API_URL = import.meta.env.VITE_API_URL as string;
@@ -84,7 +84,7 @@ export class PostService {
       imageUrl: post.imageUrl,
       caption: post.caption,
     };
-    const { data } = await axios.post<CommonResponseInterface<PostResponseDTO>>(
+    const { data } = await http.post<CommonResponseInterface<PostResponseDTO>>(
       `${API_URL}/posts/create`,
       payload,
       { headers: { 'Content-Type': 'application/json' } }
@@ -93,7 +93,7 @@ export class PostService {
   }
 
   async apiGetAllPosts(params?: { userId?: string; date?: string }): Promise<Post[]> {
-    const { data } = await axios.get<CommonResponseInterface<PostResponseDTO[]>>(
+    const { data } = await http.get<CommonResponseInterface<PostResponseDTO[]>>(
       `${API_URL}/posts`,
       { params }
     );
@@ -101,7 +101,7 @@ export class PostService {
   }
 
   async apiGetPost(id: string): Promise<Post | null> {
-    const { data } = await axios.get<CommonResponseInterface<PostResponseDTO>>(
+    const { data } = await http.get<CommonResponseInterface<PostResponseDTO>>(
       `${API_URL}/posts/${id}`
     );
     return data.data ? mapPostResponseToPost(data.data) : null;
@@ -114,7 +114,7 @@ export class PostService {
       imageUrl: updated.imageUrl,
       caption: updated.caption,
     };
-    const { data } = await axios.put<CommonResponseInterface<PostResponseDTO>>(
+    const { data } = await http.put<CommonResponseInterface<PostResponseDTO>>(
       `${API_URL}/posts/update`,
       payload,
       { headers: { 'Content-Type': 'application/json' } }
@@ -125,8 +125,8 @@ export class PostService {
 
   async apiDeletePost(id: string): Promise<boolean> {
     // Controller expects /delete/{id} and a body with { id }
-    const { status } = await axios.delete<CommonResponseInterface<PostResponseDTO>>(
-      `${API_URL}/posts/delete/${id}`,
+    const { status } = await http.delete<CommonResponseInterface<PostResponseDTO>>(
+      `${API_URL}/posts/delete`,
       { data: { id } }
     );
     return status === 200;
@@ -134,7 +134,7 @@ export class PostService {
 
   async apiLikePost(postId: string, userId: string): Promise<Post> {
     const payload = { postId, userId };
-    const { data } = await axios.post<CommonResponseInterface<PostResponseDTO>>(
+    const { data } = await http.post<CommonResponseInterface<PostResponseDTO>>(
       `${API_URL}/posts/like`,
       payload,
       { headers: { 'Content-Type': 'application/json' } }

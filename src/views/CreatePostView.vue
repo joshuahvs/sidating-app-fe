@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router';
 import { toast } from 'vue-sonner';
 import { usePostStore } from '@/stores/post/post.store';
 import { useUserProfileStore } from '@/stores/profile/profile.store';
+import { getCurrentUser } from '@/lib/auth';
 import VPostForm from '@/components/post/VPostForm.vue';
 import type { PostRequest } from '@/interfaces/post.interface';
 
@@ -17,10 +18,17 @@ const postModel = reactive<PostRequest>({
 
 const profileStore = useUserProfileStore();
 const userOptions = ref<{ id: string; name: string }[]>([]);
+const currentUser = getCurrentUser();
+const isAdmin = (currentUser?.roleName || '').toLowerCase() === 'admin';
 
 onMounted(async () => {
-  const profiles = await profileStore.fetchProfiles();
-  userOptions.value = (profiles || []).map((p) => ({ id: p.id, name: p.name }));
+  if (isAdmin) {
+    const profiles = await profileStore.fetchProfiles();
+    userOptions.value = (profiles || []).map((p) => ({ id: p.id, name: p.name }));
+  } else if (currentUser?.id) {
+    // Ensure model carries current user id for backend validation
+    postModel.userId = currentUser.id;
+  }
 });
 
 const postStore = usePostStore();
