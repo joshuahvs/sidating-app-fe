@@ -8,6 +8,7 @@ import VLikeButton from '@/components/post/VLikeButton.vue';
 import { format } from 'date-fns';
 import type { Post } from '@/interfaces/post.interface';
 import { getCurrentUser } from '@/lib/auth';
+import VReplySection from '@/components/reply/VReplySection.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -61,6 +62,9 @@ const effectivePost = computed<Post | undefined>(() => storePost.value || post.v
         </div>
         <p class="text-gray-800">{{ effectivePost.caption }}</p>
         <p class="text-sm text-gray-500">Jumlah Like: {{ effectivePost.likes.length }}</p>
+      </div>
+      <div class="mt-8 pt-8 border-t border-gray-200">
+        <VReplySection :post-id="postId" />
       </div>
     </div>
   </main>
