@@ -31,7 +31,11 @@ export interface CreateReplyRequest {
   userProfileId: string;
   content: string;
 }
- 
+
+export interface UpdateReplyRequest {
+  content: string;
+}
+
 export interface ReplyResponse {
   status: number;
   message: string;

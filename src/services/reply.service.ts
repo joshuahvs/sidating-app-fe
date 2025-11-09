@@ -3,7 +3,6 @@ import type {
   Reply,
   CreateReplyRequest,
   UpdateReplyRequest,
-  DeleteReplyRequest,
   ReplyResponse
 } from '@/interfaces/reply.interface';
 import { getAuthToken } from '@/lib/auth';
@@ -45,5 +44,18 @@ export const replyService = {
       headers: getHeaders()
     });
     return response.data.data as Reply;
+  },
+
+  async updateReply(id: string, request: UpdateReplyRequest): Promise<Reply> {
+    const response = await axios.put<ReplyResponse>(`${API_URL}/replies/${id}`, request, {
+      headers: getHeaders()
+    });
+    return response.data.data as Reply;
+  },
+
+  async deleteReply(id: string): Promise<void> {
+    await axios.delete(`${API_URL}/replies/${id}`, {
+      headers: getHeaders()
+    });
   },
 };

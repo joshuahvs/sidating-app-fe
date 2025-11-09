@@ -67,10 +67,57 @@
                 <span class="text-xs text-gray-500">
                   {{ formatDate(reply.createdAt) }}
                 </span>
+                
+                <!-- Edit and Delete buttons for authorized users (owner or admin) -->
+                <div v-if="canModify(reply)" class="flex space-x-1">
+                  <button
+                    v-if="editingReplyId !== reply.id"
+                    @click="startEditing(reply)"
+                    class="text-blue-600 hover:text-blue-800 text-sm"
+                    title="Edit"
+                  >
+                    ✏️
+                  </button>
+                  <button
+                    @click="handleDeleteReply(reply.id)"
+                    class="text-red-600 hover:text-red-800 text-sm"
+                    title="Delete"
+                  >
+                    🗑️
+                  </button>
+                </div>
               </div>
             </div>
  
-            <p class="mt-2 text-gray-700 whitespace-pre-wrap">{{ reply.content }}</p>
+            <!-- Edit form -->
+            <div v-if="editingReplyId === reply.id" class="mt-2">
+              <VTextArea
+                :id="`edit-reply-${reply.id}`"
+                v-model="editContent"
+                placeholder="Edit your reply..."
+                :rows="3"
+                :disabled="replyStore.loading"
+              />
+              <div class="flex space-x-2 mt-2">
+                <VButton
+                  @click="handleUpdateReply(reply.id)"
+                  :disabled="!editContent.trim() || replyStore.loading"
+                  size="sm"
+                >
+                  {{ replyStore.loading ? 'Saving...' : 'Save' }}
+                </VButton>
+                <VButton
+                  @click="cancelEditing"
+                  variant="secondary"
+                  size="sm"
+                >
+                  Cancel
+                </VButton>
+              </div>
+            </div>
+ 
+            <!-- Reply content -->
+            <p v-else class="mt-2 text-gray-700 whitespace-pre-wrap">{{ reply.content }}</p>
           </div>
         </div>
       </div>
@@ -82,6 +129,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { useReplyStore } from '@/stores/reply/reply.store';
 import { useAuthStore } from '@/stores/auth/auth.store';
+import { canModifyReply } from '@/lib/rbac';
 import VTextArea from '@/components/common/VTextArea.vue';
 import VButton from '@/components/common/VButton.vue';
 import type { Reply } from '@/interfaces/reply.interface';
@@ -94,6 +142,8 @@ const replyStore = useReplyStore();
 const authStore = useAuthStore();
  
 const replyContent = ref('');
+const editingReplyId = ref<string | null>(null);
+const editContent = ref('');
  
 const isAuthenticated = computed(() => !!authStore.token);
 const currentUserId = computed(() => authStore.user?.id);
@@ -115,6 +165,45 @@ const handleSubmitReply = async () => {
     replyStore.clearError();
   } catch (error) {
     console.error('Failed to create reply:', error);
+  }
+};
+
+const canModify = (reply: Reply) => {
+  return canModifyReply(reply.userProfileId);
+};
+
+const startEditing = (reply: Reply) => {
+  editingReplyId.value = reply.id;
+  editContent.value = reply.content;
+};
+
+const cancelEditing = () => {
+  editingReplyId.value = null;
+  editContent.value = '';
+};
+
+const handleUpdateReply = async (replyId: string) => {
+  if (!editContent.value.trim()) return;
+
+  try {
+    await replyStore.updateReply(replyId, {
+      content: editContent.value.trim()
+    });
+    cancelEditing();
+    replyStore.clearError();
+  } catch (error) {
+    console.error('Failed to update reply:', error);
+  }
+};
+
+const handleDeleteReply = async (replyId: string) => {
+  if (!confirm('Are you sure you want to delete this reply?')) return;
+
+  try {
+    await replyStore.deleteReply(replyId);
+    replyStore.clearError();
+  } catch (error) {
+    console.error('Failed to delete reply:', error);
   }
 };
  
