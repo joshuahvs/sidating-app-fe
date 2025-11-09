@@ -6,6 +6,7 @@ import { usePostStore } from '@/stores/post/post.store';
 import { useUserProfileStore } from '@/stores/profile/profile.store';
 import VPostForm from '@/components/post/VPostForm.vue';
 import type { PostRequest } from '@/interfaces/post.interface';
+import { getCurrentUser } from '@/lib/auth';
 
 const route = useRoute();
 const router = useRouter();
@@ -17,11 +18,15 @@ const postModel = reactive<PostRequest>({ userId: '', imageUrl: '', caption: '' 
 
 const profileStore = useUserProfileStore();
 const userOptions = ref<{ id: string; name: string }[]>([]);
+const currentUser = getCurrentUser();
+const isAdmin = (currentUser?.roleName || '').toLowerCase() === 'admin';
 
 onMounted(async () => {
-  // Load profiles for select options
-  const profiles = await profileStore.fetchProfiles();
-  userOptions.value = (profiles || []).map((p) => ({ id: p.id, name: p.name }));
+  // Load profiles for select options (admin only)
+  if (isAdmin) {
+    const profiles = await profileStore.fetchProfiles();
+    userOptions.value = (profiles || []).map((p) => ({ id: p.id, name: p.name }));
+  }
 
   // Load existing post data
   const existing = await postStore.getPostById(id);
@@ -29,7 +34,8 @@ onMounted(async () => {
     router.replace('/posts');
     return;
   }
-  postModel.userId = existing.userId || '';
+  // Default to current user id for validation if not admin or if missing
+  postModel.userId = existing.userId || currentUser?.id || '';
   postModel.imageUrl = existing.imageUrl || '';
   postModel.caption = existing.caption || '';
   loading.value = false;

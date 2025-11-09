@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { RouterLink } from 'vue-router'
 import VButton from '@/components/common/VButton.vue';
+import { isAuthenticated } from '@/lib/rbac';
 </script>
 
 <template>
@@ -11,10 +12,20 @@ import VButton from '@/components/common/VButton.vue';
         <span class="text-pink-600">SiDating</span>
       </h1>
       <div class="w-full flex justify-center gap-2">
-        <RouterLink to="/profiles" class="w-1/2">
-          <VButton class="home-button">Ke Halaman Profile</VButton>
+        <RouterLink :to="isAuthenticated() ? '/posts' : '/login'" class="w-1/2">
+          <VButton class="home-button">
+            {{ isAuthenticated() ? 'Ke Halaman Post' : 'Ke Halaman Login' }}
+          </VButton>
         </RouterLink>
       </div>
     </div>
   </main>
 </template>
+
+<style scoped>
+@reference "@/assets/main.css";
+
+.home-button {
+  @apply hover:bg-pink-600 border-2 border-pink-600 text-pink-600
+}
+</style>

@@ -1,19 +1,29 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import VDeleteProfileButton from '../VDeleteProfileButton.vue'
-import { profileService } from '../../../services/profile.service'
-import { toast } from 'vue-sonner'
 
-// Mock the profile service using correct alias path
-vi.mock('../../../services/profile.service', () => ({
-  profileService: {
-    deleteProfile: vi.fn()
+// Minimal mock for Pinia store used by the component
+const deleteProfileMock = vi.fn()
+let errorRef: { error: string | null }
+
+vi.mock('@/stores/profile/profile.store', () => ({
+  useUserProfileStore: () => {
+    return {
+      deleteProfile: deleteProfileMock,
+      get error() {
+        return errorRef.error
+      },
+      set error(val: string | null) {
+        errorRef.error = val
+      },
+    }
   }
 }))
 
 describe('VDeleteProfileButton', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    errorRef = { error: null }
   })
 
   const defaultProps = {
@@ -30,9 +40,8 @@ describe('VDeleteProfileButton', () => {
     expect(wrapper.find('button').classes()).toContain('del-button')
   })
 
-  it('should call profileService.deleteProfile when clicked', async () => {
-    const mockDeleteProfile = vi.mocked(profileService.deleteProfile)
-    mockDeleteProfile.mockReturnValue(true)
+  it('calls store.deleteProfile when clicked', async () => {
+    deleteProfileMock.mockResolvedValue(undefined)
 
     const wrapper = mount(VDeleteProfileButton, {
       props: defaultProps
@@ -40,13 +49,13 @@ describe('VDeleteProfileButton', () => {
 
     await wrapper.find('button').trigger('click')
 
-    expect(mockDeleteProfile).toHaveBeenCalledWith('test-profile-id')
-    expect(mockDeleteProfile).toHaveBeenCalledTimes(1)
+    expect(deleteProfileMock).toHaveBeenCalledWith('test-profile-id')
+    expect(deleteProfileMock).toHaveBeenCalledTimes(1)
   })
 
-  it('should emit deleted event and show success toast when deletion succeeds', async () => {
-    const mockDeleteProfile = vi.mocked(profileService.deleteProfile)
-    mockDeleteProfile.mockReturnValue(true)
+  it('emits deleted event when deletion succeeds (no store error)', async () => {
+    deleteProfileMock.mockResolvedValue(undefined)
+    errorRef.error = null
 
     const wrapper = mount(VDeleteProfileButton, {
       props: defaultProps
@@ -56,26 +65,11 @@ describe('VDeleteProfileButton', () => {
 
     expect(wrapper.emitted('deleted')).toHaveLength(1)
     expect(wrapper.emitted('deleted')![0]).toEqual(['test-profile-id'])
-    expect(toast.success).toHaveBeenCalledWith('Profile deleted successfully')
   })
 
-  it('should show error toast when deletion fails', async () => {
-    const mockDeleteProfile = vi.mocked(profileService.deleteProfile)
-    mockDeleteProfile.mockReturnValue(false)
-
-    const wrapper = mount(VDeleteProfileButton, {
-      props: defaultProps
-    })
-
-    await wrapper.find('button').trigger('click')
-
-    expect(wrapper.emitted('deleted')).toBeFalsy()
-    expect(toast.error).toHaveBeenCalledWith('Failed to delete profile')
-  })
-
-  it('should not emit deleted event when deletion fails', async () => {
-    const mockDeleteProfile = vi.mocked(profileService.deleteProfile)
-    mockDeleteProfile.mockReturnValue(false)
+  it('does not emit deleted when store reports error', async () => {
+    deleteProfileMock.mockResolvedValue(undefined)
+    errorRef.error = 'boom'
 
     const wrapper = mount(VDeleteProfileButton, {
       props: defaultProps
@@ -86,9 +80,8 @@ describe('VDeleteProfileButton', () => {
     expect(wrapper.emitted('deleted')).toBeFalsy()
   })
 
-  it('should handle different profile IDs', async () => {
-    const mockDeleteProfile = vi.mocked(profileService.deleteProfile)
-    mockDeleteProfile.mockReturnValue(true)
+  it('handles different profile IDs', async () => {
+    deleteProfileMock.mockResolvedValue(undefined)
 
     const wrapper = mount(VDeleteProfileButton, {
       props: {
@@ -98,7 +91,7 @@ describe('VDeleteProfileButton', () => {
 
     await wrapper.find('button').trigger('click')
 
-    expect(mockDeleteProfile).toHaveBeenCalledWith('different-profile-id')
+    expect(deleteProfileMock).toHaveBeenCalledWith('different-profile-id')
     expect(wrapper.emitted('deleted')![0]).toEqual(['different-profile-id'])
   })
 })
