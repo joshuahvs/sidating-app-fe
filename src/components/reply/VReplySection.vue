@@ -183,11 +183,13 @@ const cancelEditing = () => {
 };
 
 const handleUpdateReply = async (replyId: string) => {
-  if (!editContent.value.trim()) return;
+  if (!editContent.value.trim() || !currentUserId.value) return;
 
-  try {
+  try { 
     await replyStore.updateReply(replyId, {
-      content: editContent.value.trim()
+      content: editContent.value.trim(),
+      userProfileId: currentUserId.value,
+      role: authStore.user?.roleName
     });
     cancelEditing();
     replyStore.clearError();
@@ -198,9 +200,10 @@ const handleUpdateReply = async (replyId: string) => {
 
 const handleDeleteReply = async (replyId: string) => {
   if (!confirm('Are you sure you want to delete this reply?')) return;
+  if (!currentUserId.value) return;
 
   try {
-    await replyStore.deleteReply(replyId);
+    await replyStore.deleteReply(replyId, currentUserId.value, authStore.user?.roleName);
     replyStore.clearError();
   } catch (error) {
     console.error('Failed to delete reply:', error);

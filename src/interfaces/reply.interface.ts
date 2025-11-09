@@ -34,6 +34,8 @@ export interface CreateReplyRequest {
 
 export interface UpdateReplyRequest {
   content: string;
+  userProfileId: string;
+  role?: string; // User's role (Admin or User)
 }
 
 export interface ReplyResponse {

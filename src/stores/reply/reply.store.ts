@@ -97,11 +97,11 @@ export const useReplyStore = defineStore('reply', () => {
     }
   }
 
-  async function deleteReply(id: string) {
+  async function deleteReply(id: string, userProfileId: string, role?: string) {
     loading.value = true;
     error.value = null;
     try {
-      await replyService.deleteReply(id);
+      await replyService.deleteReply(id, userProfileId, role);
       replies.value = replies.value.filter(r => r.id !== id);
       if (currentReply.value?.id === id) {
         currentReply.value = null;

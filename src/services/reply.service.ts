@@ -53,9 +53,10 @@ export const replyService = {
     return response.data.data as Reply;
   },
 
-  async deleteReply(id: string): Promise<void> {
+  async deleteReply(id: string, userProfileId: string, role?: string): Promise<void> {
     await axios.delete(`${API_URL}/replies/${id}`, {
-      headers: getHeaders()
+      headers: getHeaders(),
+      data: { userProfileId, role }
     });
   },
 };
