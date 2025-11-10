@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { usePostStore } from '@/stores/post/post.store';
 import VButton from '@/components/common/VButton.vue';
@@ -16,7 +17,10 @@ const router = useRouter();
 const { id: postId } = route.params as { id: string };
 const currentUser = getCurrentUser();
 const currentUserId = currentUser?.id || '';
+const currentUser = getCurrentUser();
+const currentUserId = currentUser?.id || '';
 
+// Local fallback; primary source will be store
 // Local fallback; primary source will be store
 const post = ref<Post | undefined>(undefined);
 const postStore = usePostStore();
@@ -31,7 +35,19 @@ onMounted(async () => {
   const idx = postStore.posts.findIndex(x => x.id === p.id);
   if (idx === -1) postStore.posts.push(p); else postStore.posts[idx] = p;
   post.value = p;
+  if (!p) {
+    router.replace('/posts');
+    return;
+  }
+  // Ensure the store contains this post so VLikeButton can react to likes
+  const idx = postStore.posts.findIndex(x => x.id === p.id);
+  if (idx === -1) postStore.posts.push(p); else postStore.posts[idx] = p;
+  post.value = p;
 });
+
+// Always read the post from the store if available so likes update live
+const storePost = computed(() => postStore.posts.find(p => p.id === postId));
+const effectivePost = computed<Post | undefined>(() => storePost.value || post.value);
 
 // Always read the post from the store if available so likes update live
 const storePost = computed(() => postStore.posts.find(p => p.id === postId));
@@ -50,14 +66,19 @@ const effectivePost = computed<Post | undefined>(() => storePost.value || post.v
         </div>
       </div>
       <div v-if="effectivePost" class="flex flex-col gap-6">
+      <div v-if="effectivePost" class="flex flex-col gap-6">
         <div class="aspect-square w-full overflow-hidden rounded-xl">
+          <img :src="effectivePost.imageUrl" :alt="effectivePost.caption" class="w-full h-full object-cover" />
           <img :src="effectivePost.imageUrl" :alt="effectivePost.caption" class="w-full h-full object-cover" />
         </div>
         <div class="flex justify-between items-center">
           <div>
             <p class="font-semibold">@{{ effectivePost.userName || (effectivePost.userId?.slice(0,8) + '…') }}</p>
             <p class="text-sm text-gray-500">{{ format(new Date(effectivePost.createdAt), 'dd MMM yyyy HH:mm') }}</p>
+            <p class="font-semibold">@{{ effectivePost.userName || (effectivePost.userId?.slice(0,8) + '…') }}</p>
+            <p class="text-sm text-gray-500">{{ format(new Date(effectivePost.createdAt), 'dd MMM yyyy HH:mm') }}</p>
           </div>
+          <VLikeButton :post-id="effectivePost.id" :current-user-id="currentUserId" />
           <VLikeButton :post-id="effectivePost.id" :current-user-id="currentUserId" />
         </div>
         <p class="text-gray-800">{{ effectivePost.caption }}</p>
