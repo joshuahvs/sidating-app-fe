@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sidatingapp-fe
+  labels:
+    app: sidatingapp-fe
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sidatingapp-fe
+  template:
+    metadata:
+      labels:
+        app: sidatingapp-fe
+    spec:
+      containers:
+        - name: sidatingapp-fe
+          image: joshuahansvito/sidatingapp-fe:latest
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
