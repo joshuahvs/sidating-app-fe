@@ -4,7 +4,7 @@ stages:
   - deploy
 
 variables:
-  DOCKER_IMAGE_NAME: hafizmuh/sidating-test-fe
+  DOCKER_IMAGE_NAME: joshuahansvito/sidating-fe
   IMAGE_TAG: $CI_COMMIT_SHORT_SHA
 
 build:
