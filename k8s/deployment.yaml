@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: sidatingapp-fe
-          image: joshuahansvito/sidatingapp-fe:latest
+          image: joshuahansvito/sidatingapp-fe:REPLACE_ME_TAG
           ports:
             - containerPort: 80
           resources:
