@@ -431,7 +431,7 @@ GitHub.sublime-settings
 .Python
 [Bb]in
 [Ii]nclude
-[Ll]ib
+# [Ll]ib
 [Ll]ib64
 [Ll]ocal
 [Ss]cripts
@@ -487,7 +487,7 @@ tags
 docs/_book
 
 # TODO: where does this rule come from?
-test/
+# test/
 
 ### Vuejs ###
 # Recommended template: Node.gitignore
@@ -550,3 +550,7 @@ gradle-app.setting
 *.hprof
 
 # End of https://www.toptal.com/developers/gitignore/api/windows,macos,linux,homebrew,gradle,java,node,vue,vuejs,visualstudiocode,intellij+all,eclipse,sublimetext,nanoc,vim,notepadpp,dbeaver,venv,dotenv
+
+.env
+.env.*
+!.env.example

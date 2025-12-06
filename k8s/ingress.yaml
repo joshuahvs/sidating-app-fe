@@ -1,0 +1,18 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: sidatingapp-fe-ingress
+  annotations:
+    kubernetes.io/ingress.class: traefik
+spec:
+  rules:
+    - host: 2306165540-sidating-fe.hafizmuh.site
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: sidatingapp-fe-service
+                port:
+                  number: 80
